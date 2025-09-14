@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ClassNotes AI</title>
+  <style>
+    body{font-family:system-ui;-apple-system,Segoe UI,Roboto;max-width:720px;margin:24px auto;padding:0 16px}
+    .card{border:1px solid #e99999ff;border-radius:12px;padding:16px;margin:12px 0}
+    button{padding:10px 16px;border-radius:8px;border:0;background:#111827;color:#fff}
+    .sources a{display:inline-block;margin-right:8px}
+  </style>
+</head>
+<body>
+  <h1>ClassNotes AI (MVP)</h1>
+
+  <div class="card">
+    <h3>Upload note (PDF / image)</h3>
+    <input id="file" type="file" accept=".pdf,image/*"/>
+    <p id="status"></p>
+  </div>
+
+  <div class="card">
+    <h3>Ask your notes</h3>
+    <input id="q" type="text" placeholder="e.g. Define normalization..." style="width:75%"/>
+    <button id="askBtn">Ask</button>
+    <div id="answer" style="margin-top:12px;"></div>
+    <div id="sources" class="sources"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

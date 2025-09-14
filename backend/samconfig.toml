@@ -1,0 +1,12 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "studyNotesAI"
+resolve_s3 = true
+s3_prefix = "studyNotesAI"
+region = "eu-north-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "RawBucketName=\"classnotes-raw-delvin-2025\" PdfBucketName=\"classnotes-pdfs-delvin-2025\" TableName=\"classnotes-meta\""
+image_repositories = []

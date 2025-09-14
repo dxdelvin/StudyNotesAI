@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: StudyNotesAI
+Parameters:
+  RawBucketName:
+    Type: String
+    Default: classnotes-raw
+  PdfBucketName:
+    Type: String
+    Default: classnotes-pdfs
+  TableName:
+    Type: String
+    Default: classnotes-meta
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 120
+    MemorySize: 512
+    Tracing: Active
+Resources:
+  RawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: RawBucketName
+  PdfBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: PdfBucketName
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - HEAD
+          AllowedOrigins:
+          - '*'
+          MaxAge: 3000
+  NotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Ref: TableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      - AttributeName: sk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+      - AttributeName: sk
+        KeyType: RANGE
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: classnotes-api
+      CodeUri: ApiFunction
+      Handler: main.handler
+      Environment:
+        Variables:
+          RAW_BUCKET:
+            Ref: RawBucketName
+          PDF_BUCKET:
+            Ref: PdfBucketName
+          DDB_TABLE:
+            Ref: TableName
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: RawBucketName
+      - S3CrudPolicy:
+          BucketName:
+            Ref: PdfBucketName
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: TableName
+      - Statement:
+          Effect: Allow
+          Action:
+          - textract:StartDocumentTextDetection
+          - textract:GetDocumentTextDetection
+          Resource: '*'
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+    Metadata:
+      SamResourceId: ApiFunction
+Outputs:
+  ApiUrl:
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+  RawBucketOut:
+    Value:
+      Ref: RawBucketName
+  PdfBucketOut:
+    Value:
+      Ref: PdfBucketName
+  TableOut:
+    Value:
+      Ref: TableName
