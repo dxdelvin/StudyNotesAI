@@ -4,13 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 import boto3
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 REGION = os.getenv("AWS_REGION", "eu-central-1")
 RAW_BUCKET = os.getenv("RAW_BUCKET")
@@ -25,58 +18,53 @@ table = ddb.Table(DDB_TABLE)
 
 app = FastAPI(title="StudyNotesAI")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500", "*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
-    """
-    1) Save file into S3 'raw/' (Textract reads from here).
-    2) Also copy to 'pdfs/' for later viewing via pre-signed URL.
-    3) Start Textract OCR (async) and store job_id in DynamoDB.
-    """
-    # 1. Generate a doc id for tracking
-    doc_id = str(uuid.uuid4())
-    filename = f"{doc_id}_{file.filename}"
+    try:
+        doc_id = str(uuid.uuid4())
+        filename = f"{doc_id}_{file.filename}"
+        body = await file.read()
 
-    # 2. Read file body
-    body = await file.read()
+        if len(body) > 8 * 1024 * 1024:  # ~8MB MVP guard
+            raise HTTPException(status_code=413, detail="File too large for MVP. Try <8MB.")
 
-    # 3. Save original to raw bucket (Textract will read this)
-    s3.put_object(
-        Bucket=RAW_BUCKET,
-        Key=f"raw/{filename}",
-        Body=body,
-        ContentType=file.content_type
-    )
+        s3.put_object(Bucket=os.environ["RAW_BUCKET"], Key=f"raw/{filename}", Body=body, ContentType=file.content_type)
+        s3.put_object(Bucket=os.environ["PDF_BUCKET"], Key=f"pdfs/{filename}", Body=body, ContentType=file.content_type)
 
-    # 4. Save a copy for viewing (we'll presign this later)
-    s3.put_object(
-        Bucket=PDF_BUCKET,
-        Key=f"pdfs/{filename}",
-        Body=body,
-        ContentType=file.content_type
-    )
+        resp = textract.start_document_text_detection(
+            DocumentLocation={"S3Object": {"Bucket": os.environ["RAW_BUCKET"], "Name": f"raw/{filename}"}}
+        )
+        job_id = resp["JobId"]
 
-    # 5. Kick off OCR
-    resp = textract.start_document_text_detection(
-        DocumentLocation={"S3Object": {"Bucket": RAW_BUCKET, "Name": f"raw/{filename}"}}
-    )
-    job_id = resp["JobId"]
+        table.put_item(Item={
+            "pk": f"DOC#{doc_id}",
+            "sk": "META#v0",
+            "filename": file.filename,
+            "status": "OCR_RUNNING",
+            "job_id": job_id,
+            "pdf_key": f"pdfs/{filename}",
+        })
+        return {"doc_id": doc_id, "message": "Uploaded. OCR started."}
 
-    # 6. Record metadata in DynamoDB
-    table.put_item(Item={
-        "pk": f"DOC#{doc_id}",
-        "sk": "META#v0",
-        "filename": file.filename,
-        "status": "OCR_RUNNING",
-        "job_id": job_id,
-        "pdf_key": f"pdfs/{filename}",
-    })
-
-    return {"doc_id": doc_id, "message": "Uploaded. OCR started."}
-
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("UPLOAD_ERROR:", repr(e))
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Upload failed (see logs)")
+    
 @app.get("/ask")
 def ask(q: str = Query(..., min_length=3)):
     """

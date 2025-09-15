@@ -18,6 +18,40 @@ Globals:
     MemorySize: 512
     Tracing: Active
 Resources:
+  ApiGatewayDefault4xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: ApiGatewayApi
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
+        gatewayresponse.header.Access-Control-Allow-Headers: '''*'''
+        gatewayresponse.header.Access-Control-Allow-Methods: '''GET,POST,OPTIONS'''
+  ApiGatewayDefault5xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseType: DEFAULT_5XX
+      RestApiId:
+        Ref: ApiGatewayApi
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
+        gatewayresponse.header.Access-Control-Allow-Headers: '''*'''
+        gatewayresponse.header.Access-Control-Allow-Methods: '''GET,POST,OPTIONS'''
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: '''GET,POST,OPTIONS'''
+        AllowHeaders: '''Content-Type,Authorization'''
+        AllowOrigin: '''*'''
+      BinaryMediaTypes:
+      - multipart/form-data
+      - application/pdf
+      - image/png
+      - image/jpeg
+      - '*/*'
   RawBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -85,9 +119,18 @@ Resources:
           - textract:GetDocumentTextDetection
           Resource: '*'
       Events:
-        Api:
+        ProxyRoot:
           Type: Api
           Properties:
+            RestApiId:
+              Ref: ApiGatewayApi
+            Path: /
+            Method: ANY
+        ProxyCatchAll:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayApi
             Path: /{proxy+}
             Method: ANY
     Metadata:
@@ -95,7 +138,8 @@ Resources:
 Outputs:
   ApiUrl:
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+      Fn::Sub: https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
+    Description: Invoke URL
   RawBucketOut:
     Value:
       Ref: RawBucketName
