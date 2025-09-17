@@ -10,7 +10,7 @@ Parameters:
     Default: classnotes-pdfs
   TableName:
     Type: String
-    Default: classnotes-meta
+    Default: classnotes-meta-20250915
 Globals:
   Function:
     Runtime: python3.11
@@ -91,7 +91,7 @@ Resources:
   ApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: classnotes-api
+      FunctionName: classnotes-api-20250915
       CodeUri: ApiFunction
       Handler: main.handler
       Environment:
