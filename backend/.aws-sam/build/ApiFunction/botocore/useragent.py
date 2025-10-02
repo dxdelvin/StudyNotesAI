@@ -80,6 +80,20 @@ _USERAGENT_FEATURE_MAPPINGS = {
     'FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED': 'c',
     'CREDENTIALS_CODE': 'e',
     'CREDENTIALS_ENV_VARS': 'g',
+    'CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN': 'h',
+    'CREDENTIALS_STS_ASSUME_ROLE': 'i',
+    'CREDENTIALS_STS_ASSUME_ROLE_WEB_ID': 'k',
+    'CREDENTIALS_PROFILE': 'n',
+    'CREDENTIALS_PROFILE_SOURCE_PROFILE': 'o',
+    'CREDENTIALS_PROFILE_NAMED_PROVIDER': 'p',
+    'CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN': 'q',
+    'CREDENTIALS_PROFILE_SSO': 'r',
+    'CREDENTIALS_SSO': 's',
+    'CREDENTIALS_PROFILE_SSO_LEGACY': 't',
+    'CREDENTIALS_SSO_LEGACY': 'u',
+    'CREDENTIALS_PROFILE_PROCESS': 'v',
+    'CREDENTIALS_PROCESS': 'w',
+    'CREDENTIALS_BOTO2_CONFIG_FILE': 'x',
     'CREDENTIALS_HTTP': 'z',
     'CREDENTIALS_IMDS': '0',
     'BEARER_SERVICE_ENV_VARS': '3',
@@ -103,6 +117,17 @@ def register_feature_id(feature_id):
         return
     if val := _USERAGENT_FEATURE_MAPPINGS.get(feature_id):
         ctx.features.add(val)
+
+
+def register_feature_ids(feature_ids):
+    """Adds multiple feature IDs to the current context object's ``features`` set.
+
+    :type feature_ids: iterable of str
+    :param feature_ids: An iterable of feature ID strings to register. Each
+        value must be a key in the ``_USERAGENT_FEATURE_MAPPINGS`` dict.
+    """
+    for feature_id in feature_ids:
+        register_feature_id(feature_id)
 
 
 def sanitize_user_agent_string_component(raw_str, allow_hash):
