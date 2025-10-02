@@ -90,6 +90,10 @@ Resources:
         KeyType: RANGE
   ApiFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildProperties:
+        Requirements: requirements.txt
+      SamResourceId: ApiFunction
     Properties:
       FunctionName: classnotes-api-20250915
       CodeUri: ApiFunction
@@ -133,8 +137,6 @@ Resources:
               Ref: ApiGatewayApi
             Path: /{proxy+}
             Method: ANY
-    Metadata:
-      SamResourceId: ApiFunction
 Outputs:
   ApiUrl:
     Value:

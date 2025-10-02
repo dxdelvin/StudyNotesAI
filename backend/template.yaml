@@ -90,6 +90,9 @@ Resources:
 
   ApiFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+        BuildProperties:
+          Requirements: requirements.txt
     Properties:
       FunctionName: classnotes-api-20250915
       CodeUri: app/

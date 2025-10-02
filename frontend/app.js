@@ -1,4 +1,4 @@
-const API_BASE = "https://5zkzu7uu9a.execute-api.eu-north-1.amazonaws.com/Prod";
+const API_BASE = "https://9239klfkci.execute-api.eu-central-1.amazonaws.com/Prod";
 
 const els = {
   file: document.getElementById("file"),
@@ -25,15 +25,49 @@ async function uploadNote(file) {
   els.file.disabled = true;
   setStatus("Uploading…");
   try {
-    const res = await fetch(API_BASE + "/upload", { method: "POST", body: fd });
-    if (!res.ok) throw new Error("Upload failed: " + res.status);
+    const res = await fetch(API_BASE + "/upload", { 
+      method: "POST", 
+      body: fd,
+      mode: 'cors',  // Add CORS mode
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Upload failed: ${res.status}`);
+    }
+    
     const data = await res.json();
     lastDocId = data.doc_id;
-    setStatus(`Uploaded. OCR started. doc_id=${lastDocId}`);
-    // show a Process button after upload
-    ensureProcessBtn();
+    setStatus(`Uploaded. Starting OCR processing...`);
+    
+    // Wait a few seconds for Textract to start
+    await new Promise(resolve => setTimeout(resolve, 6000));
+    
+    // Process the document
+    const processRes = await fetch(`${API_BASE}/process?doc_id=${encodeURIComponent(lastDocId)}`, {
+      method: "POST",
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!processRes.ok) {
+      throw new Error("Processing failed: " + processRes.status);
+    }
+    
+    const processData = await processRes.json();
+    if (processData.ok) {
+      setStatus(`✅ Successfully processed ${processData.pages} pages. Ready to ask questions!`);
+    } else {
+      throw new Error(processData.msg || "Processing failed");
+    }
   } catch (err) {
     setStatus("❌ " + err.message);
+    console.error("Error:", err);
   } finally {
     els.file.disabled = false;
   }
@@ -54,8 +88,9 @@ async function processDoc() {
   setStatus("Processing OCR results…");
   try {
     const res = await fetch(`${API_BASE}/process?doc_id=${encodeURIComponent(lastDocId)}`, { method: "POST" });
+    const text = await res.text();
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error("Process failed");
+    if (!res.ok || !data.ok) throw new Error(`(${res.status}) ${data.msg || text}`);
     setStatus(`✅ Processed ${data.pages} page(s). Ready to ask.`);
   } catch (e) {
     setStatus("❌ " + e.message);
