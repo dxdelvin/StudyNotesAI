@@ -1,0 +1,125 @@
+
+:root{
+  --bg: #f6f8fa;
+  --bg-card: #ffffff;
+  --text: #24292f;
+  --muted: #57606a;
+  --border: #d0d7de;
+  --link: #0969da;
+  --btn: #1f883d;        /* primary green */
+  --btn-hover: #1a7f37;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --border: #30363d;
+    --link: #2f81f7;
+    --btn: #238636;
+    --btn-hover: #1f6f3d;
+  }
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* ===== Layout ===== */
+.container{
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header */
+.Header{
+  border-bottom:1px solid var(--border);
+  background: var(--bg-card);
+}
+.Header .container{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.brand{ font-weight:600; font-size:18px; }
+.nav-link{
+  color:var(--link); text-decoration:none; margin-left:12px;
+}
+.nav-link:hover{ text-decoration:underline; }
+
+/* ===== Card / Box ===== */
+.Box{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:16px;
+  margin:16px 0;
+}
+.Box-title{
+  margin:0 0 12px 0;
+  font-size:16px; font-weight:600;
+}
+
+/* Labels & flashes */
+.Label{
+  display:inline-block; margin-left:8px;
+  padding:2px 6px; border:1px solid var(--border);
+  border-radius:999px; color:var(--muted);
+  font-size:12px; background:transparent;
+}
+.flash{
+  margin-top:10px; color:var(--muted);
+}
+
+/* Forms */
+.form-row{
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.form-control{
+  flex:1 1 320px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--bg-card);
+  color:var(--text);
+}
+.form-control:focus{
+  outline: none;
+  border-color: var(--link);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--link) 30%, transparent);
+}
+
+/* Buttons */
+.btn{
+  padding:8px 14px; border-radius:6px; border:1px solid var(--border);
+  background:var(--bg-card); color:var(--text); cursor:pointer;
+}
+.btn:hover{ background: color-mix(in srgb, var(--bg-card) 80%, var(--border)); }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+.btn-primary{
+  background: var(--btn); color:#fff; border-color: transparent;
+}
+.btn-primary:hover{ background: var(--btn-hover); }
+
+/* Answer & sources */
+.answer{
+  margin-top:12px;
+  padding:12px; border:1px solid var(--border); border-radius:6px;
+  background:var(--bg); color:var(--text);
+}
+.sources a{
+  display:inline-block; margin:8px 8px 0 0; padding:4px 8px;
+  border:1px solid var(--border); border-radius:999px;
+  text-decoration:none; color:var(--link);
+}
+.sources a:hover{ text-decoration:underline; }
+
+/* Footer */
+.Footer{ color:var(--muted); text-align:center; margin:24px 0; }

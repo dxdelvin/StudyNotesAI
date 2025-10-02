@@ -15,7 +15,6 @@ textract = boto3.client("textract", region_name=REGION)
 ddb = boto3.resource("dynamodb", region_name=REGION)
 table = ddb.Table(DDB_TABLE)
 
-
 app = FastAPI(title="StudyNotesAI")
 
 app.add_middleware(

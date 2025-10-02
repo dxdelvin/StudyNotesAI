@@ -1,4 +1,4 @@
-const API_BASE = "https://oea8v08j50.execute-api.eu-north-1.amazonaws.com/Prod";
+const API_BASE = "https://5zkzu7uu9a.execute-api.eu-north-1.amazonaws.com/Prod";
 
 const els = {
   file: document.getElementById("file"),
